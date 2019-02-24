@@ -38,7 +38,7 @@ survey <- read_dta(file.path(ddir, "Acting Wife", "2_survey.dta"))
 
 survey %>%
   mutate(marital = if_else(marital == ".", NA_character_, marital)) %>%
-  summarise(prop_male = 1 - mean(female, na.rm = T),
+  summarise(prop_male = 1 - mean(female, na.rm = T), #na.rm = to remove 
             prop_single = mean(single, na.rm = T),
             prop_single_alt = mean(marital == 1, na.rm = T),
             prop_engaged = mean(marital == 2, na.rm = T),
@@ -53,7 +53,7 @@ survey %>%
 # Replicating Table 2 Col 1 and 2
 #-----------------------------------
 
-category_codebook <-
+category_codebook <- # Try to practice this section
   tibble(single = c(1,1,0,0),
          female = c(1,0,1,0),
          category = c("Single Woman", "Single Man",
@@ -61,11 +61,16 @@ category_codebook <-
 
 survey %>%
   left_join(category_codebook) %>%
-  filter(!is.na(category)) %>%
+  filter(!is.na(category)) %>% #filter is for picking rows
   group_by(category) %>%
   summarise(Salary_Negotiation = mean(wage, na.rm = T),
             Leadership_Role = mean(leadership, na.rm = T),
-            Presentati)
+            Comfortable_Speaking = mean(speaking, na.rm = T),
+            Comfortable_Presentation = mean(presentation, na.rm = T),
+            Relationship_Duration = mean(relationship_duration, na.rm = T),
+            Single = mean(single, na.rm = T),
+            Single_TwoYears = mean(single_two_years, na.rm = T)
+            )
 
 
 #-----------------------------------

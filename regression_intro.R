@@ -1,5 +1,9 @@
 #====================================
 # Intro to Applied Regression
+
+#Linear Regression:
+#Gets a slope and the intercept of the data 
+
 #====================================
 
 #-----------------------------------
@@ -18,7 +22,7 @@ while(basename(root) != "family-cohort") {
 source(file.path(root, "data.R"))
 
 # Leoading the packages we want
-library(tidyverse)
+library(tidyverse) # for ggplot and dplyr
 library(haven) # for reading stata data
 library(lfe) # for fixed effect regression
 library(stargazer) # for pretty regression tables
@@ -99,11 +103,12 @@ clean_df <-
 # Let's look at the effect of age on real income using the ipums data
 # Here are three different OLS regression specifications
 
-ols1 <- lm(real_inc ~ age, data = clean_df)
-
+ols1 <- lm(real_inc ~ age, data = clean_df) #(formula [predict real_inc by age], dataframe), lm is 
+# just because the data is significant, does not mean that the data is good
+#R^2 Statistic: how much variation is explained by our model
 stargazer(ols1, type = "text",
           title = "Base Specification",
-          omit.stat = c("ser", "f"))
+          omit.stat = c("ser", "f")) # taking away unneeded data
 
 #-----------------------------------
 # Models with Dummy Variables
@@ -113,34 +118,35 @@ clean_df <-
   clean_df %>%
   mutate(sex = relevel(as.factor(sex), "Male"),
          race = relevel(as.factor(race), "White"),
-         marst = relevel(as.factor(marst), "Single"))
-
+         marst = relevel(as.factor(marst), "Single")) #if factor, represent text data as ordered numbered
+        #see effective as female i.e. base is male
 ols2 <- lm(real_inc ~ age + race + hispan, data = clean_df)
 ols3 <- lm(real_inc ~ age + sex, data = clean_df)
 ols4 <- lm(real_inc ~ age + race + hispan + sex, data = clean_df)
-ols5 <- lm(real_inc ~ age + marst + sex, data = clean_df)
+ols5 <- lm(real_inc ~ age + marst + sex, data = clean_df) # even though variables will increase the R2, we can drop the unnecessary data
 
 stargazer(ols1,ols2,ols3,ols4,ols5, type = "text",
           title = "Comparison of OLS With Different Controls",
           omit.stat = c("ser", "f"))
 
 #-----------------------------------
-# Fixed Effect Models
+# Fixed Effect Models VS OLS, they are similar enough to use both 
 #-----------------------------------
 
 # Fixed effects are great for projecting out things we don't care about, but
 # that we definitely want to control for. In this case, let's do year and race
-# fixed effects:
+# fixed effects: want to control for
 
 fe1 <- felm(real_inc ~ age | as.factor(year) + race + hispan, data = clean_df)
 fe2 <- felm(real_inc ~ age + marst | as.factor(year) + race + hispan, data = clean_df)
 fe3 <- felm(real_inc ~ age + sex | as.factor(year) + race + hispan, data = clean_df)
 fe4 <- felm(real_inc ~ age + sex + marst | as.factor(year) + race + hispan, data = clean_df)
 
-stargazer(ols1,fe1,fe2,fe3,fe4, type = "text",
+stargazer(ols1,fe1,fe2,fe3,fe4, type = "text", # always try to include an ols
           title = "Comparision of Fixed Effect Specifications",
-          omit.stat = c("ser", "f"))
-
+          omit.stat = c("ser", "f")) # usually dont report the correlation 
+# the fixed effect => de'mean'ing the variable 
+# it will subtract the mean from each [variable]'s data 
 #-----------------------------------
 # Regression Discontinuity
 #-----------------------------------
@@ -176,16 +182,17 @@ analysis_df <-
          year = as.factor(year),
          real_inc = real_inc/1000) %>%
   filter(age < 35, age > 24, marst != "Widowed",
-         marst != "Separated", sex == "Male")
+         marst != "Separated", marst != "Divorced", sex == "Male")
 
-mar1 <- lm(married ~ real_inc, data = analysis_df)
+mar1 <- lm(married ~ real_inc, data = analysis_df) #married as a function of income
 mar2 <- felm(married ~ real_inc | year + race + hispan, data = analysis_df)
 mar3 <- felm(married ~ real_inc | year + race + hispan,
-             weights = analysis_df$perwt, data = analysis_df)
-mar4 <- glm(married ~ real_inc, data = analysis_df, family = "binomial")
+             weights = analysis_df$perwt, data = analysis_df) #weighted regressions, how much does this sample represent the population in my data
+mar4 <- glm(married ~ real_inc, data = analysis_df, family = "binomial") #binomial distribution for being married, glm: generalized linear model
 mar5 <- glm(married ~ real_inc + year, data = analysis_df, family = "binomial")
 mar6 <- glm(married ~ real_inc + year, data = analysis_df, family = "binomial",
             weights = analysis_df$perwt)
-
+# constants here: background probability of getting married
+# most likely, we are going to run logistic regressions
 stargazer(mar1,mar2,mar3,mar4,mar5,mar6, type = "text",
           omit.stat = c("ser", "f"))

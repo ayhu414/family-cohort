@@ -91,7 +91,7 @@ clean_df <-
   left_join(SEX_codebook) %>%
   left_join(INFL_codebook) %>%
   select(-MARST, -RACE, -HISPAN, -SEX) %>%
-  mutate(real_inc = inctot * infl_mult)
+  mutate(real_inc = inctot * infl_mult) #Notice this is standardizing of dollars
 
 #-----------------------------------
 # Replicating Figure 1a
@@ -108,7 +108,7 @@ fig_1a <-
          hispan == F,
          age < 35,
          age >= 25) %>%
-  mutate(binned_real_inc = round(real_inc/2500)*2500) %>%
+  mutate(binned_real_inc = round(real_inc/2500)*2500) %>% #Rounding to bins, by rounding to the nearest 2,500 -> Better Data
   group_by(binned_real_inc, year, sex) %>%
   summarise(prop_married = mean(marst == "Married", na.rm = T)) %>%
   filter(binned_real_inc < 75000)
