@@ -26,6 +26,7 @@ library(tidyverse) # for ggplot and dplyr
 library(haven) # for reading stata data
 library(lfe) # for fixed effect regression
 library(stargazer) # for pretty regression tables
+library(AER) # for some great datasets
 #-----------------------------------
 # Loading In the Data
 #-----------------------------------
@@ -148,16 +149,45 @@ stargazer(ols1,fe1,fe2,fe3,fe4, type = "text", # always try to include an ols
 # the fixed effect => de'mean'ing the variable 
 # it will subtract the mean from each [variable]'s data 
 #-----------------------------------
-# Regression Discontinuity
+# Regression Discontinuity/ Diff in Diff
 #-----------------------------------
 
-# Saved for another dataset another time
+data("PSID1982")
 
+df <-
+  PSID1982 %>%
+  mutate(any_college = if_else(education > 12, 1, 0))
+
+PSID1982 %>%
+  ggplot(aes(x = education, y = wage, color = occupation)) +
+  geom_jitter(alpha = .3) +
+  facet_wrap(~gender) +
+  labs(title = "Hmm")
+
+mod1 <- lm(wage ~ education, data = df)
+mod2 <- lm(wage ~ education + any_college, data = df)
+mod3 <- lm(wage ~ education * any_college, data = df) #Notice that the coefficient with any_college drops income..?
+mod4 <- lm(wage ~ education * any_college + occupation, data = df)
+
+stargazer(mod1,mod2,mod3,mod4, type = "text",
+          title = "Trying to Model Prior Figure",
+          omit.stat = c("ser", "f"))
+
+#Troubleshooting in R:
+  #1) Running things one line by one line
+  #2) using the "?" command in the console + Run the same code with a familiar function
 #-----------------------------------
 # Differences In Differences
 #-----------------------------------
 
-# Saved for another dataset another time
+dd1 <- lm(wage ~ any_college, data = df)
+dd2 <- lm(wage ~ occupation, data = df)
+dd3 <- lm(wage ~ any_college + occupation, data = df)
+dd4 <- lm(wage ~ any_college * occupation, data = df)
+
+stargazer(dd1,dd2,dd3,dd4, type = "text",
+          title = "Trying to Model Different Part of Prior Figure",
+          omit.stat = c("ser", "f"))
 
 #-----------------------------------
 # Instrumental variables/2SLS
@@ -183,6 +213,8 @@ analysis_df <-
          real_inc = real_inc/1000) %>%
   filter(age < 35, age > 24, marst != "Widowed",
          marst != "Separated", marst != "Divorced", sex == "Male")
+         marst != "Separated", marst != "Divorced",
+         sex == "Male")
 
 mar1 <- lm(married ~ real_inc, data = analysis_df) #married as a function of income
 mar2 <- felm(married ~ real_inc | year + race + hispan, data = analysis_df)
