@@ -157,6 +157,24 @@ data("PSID1982")
 df <-
   PSID1982 %>%
   mutate(any_college = if_else(education > 12, 1, 0))
+<<<<<<< HEAD
+=======
+
+PSID1982 %>%
+  ggplot(aes(x = education, y = wage, color = occupation)) +
+  geom_jitter(alpha = .3) +
+  facet_wrap(~gender) +
+  labs(title = "Hmm")
+
+mod1 <- lm(wage ~ education, data = df)
+mod2 <- lm(wage ~ education + any_college, data = df)
+mod3 <- lm(wage ~ education * any_college, data = df)
+mod4 <- lm(wage ~ education * any_college + occupation, data = df)
+
+stargazer(mod1,mod2,mod3,mod4, type = "text",
+          title = "Trying to Model Prior Figure",
+          omit.stat = c("ser", "f"))
+>>>>>>> 711c27e5e69242d75a11d9ef3bca25b8135e4b7b
 
 PSID1982 %>%
   ggplot(aes(x = education, y = wage, color = occupation)) +
@@ -212,7 +230,10 @@ analysis_df <-
          year = as.factor(year),
          real_inc = real_inc/1000) %>%
   filter(age < 35, age > 24, marst != "Widowed",
+<<<<<<< HEAD
          marst != "Separated", marst != "Divorced", sex == "Male")
+=======
+>>>>>>> 711c27e5e69242d75a11d9ef3bca25b8135e4b7b
          marst != "Separated", marst != "Divorced",
          sex == "Male")
 
